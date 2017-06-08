@@ -52,7 +52,6 @@ save('result/netdx/eigenvalue_list.mat','eigen_value_list')
 fprintf('Running Integration\n');
 clear R Q A
 [coeff,score,latent] = pca(networks,'Algorithm','eig');
-save('result/netdx/eigenvalue_big_network.mat','latent')
 fprintf('PCA finished, computing beta vector')
 beta = coeff \ annotation;
 %Change variable name for easy understanding.
@@ -60,9 +59,9 @@ eigenvector = coeff;
 predicted_type = annotation;
 save('result/netdx/linear_regression_input.mat','coeff','annotation')
 save('result/netdx/linear_regression_output.mat','beta')
-beta_ = abs(beta)/sum(abs(beta));
-eigen_value_list_ = eigen_value_list./repmat(sum(eigen_value_list,2),1,ngene)/10;
+beta_ = abs(beta)/sum(abs(beta))/2;
+eigen_value_list_ = eigen_value_list./repmat(sum(eigen_value_list,2),1,ngene);
 %% Plot
-plot(1:ngene,beta_,1:ngene,eigen_value_list_)
+plot(1:ngene,beta_,1:ngene,eigen_value_list)
 legend('beta','eigenvalue')
 saveas(gcf,'result/netdx/comparison.png')
