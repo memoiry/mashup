@@ -1,6 +1,5 @@
 #' compare betas and eigenvalues for networks
 rm(list=ls())
-
 require(R.matlab)
 require(plotrix)
 require(ggplot2)
@@ -23,19 +22,20 @@ p
 
 # --------------------------------
 # work begins
-outDir <- "result/netdx/H_vs_beta"
+outDir <- "result/netdx/big_networks"
 if (!file.exists(outDir)) dir.create(outDir)
 
 # load data
-data <- readMat("result/netdx/eigenvalue_list.mat")
-betas <- readMat("result/netdx/linear_regression_output.mat")
-H <- t(data[[1]])
-H <- cbind(H,betas[[1]])
-colnames(H) <- c("age","grade","stage","beta")
-
+data <- readMat("eigen_value_list.mat")
+betas <- readMat("beta.mat")
+H <- data[[1]]
+H <- cbind(H,abs(betas[[1]]))
+(nth <- paste0("The_",1:1801,"th_network"))
+colnames(H) <- c(nth,"beta")
+H <- H[nrow(H):1,]
 # plot colored table
 pdf(sprintf("%s/H_vs_beta_coloredMat.pdf",outDir),width=5,height=11)
-plotrix::color2D.matplot(H,show.values=F,axes=F,extremes=c("yellow","red"),
+plotrix::color2D.matplot(H[,c(1:100,dim(H)[2])],show.values=F,axes=F,extremes=c("yellow","red"),
 border='white',las=1,ylab="K",xlab="N, beta")
 axis(1,at=1:ncol(H)-0.5, labels=colnames(H),cex.axis=0.5)
 dev.off()
@@ -44,22 +44,23 @@ dev.off()
 H <- as.data.frame(H)
 
 pList <- list()
-fit <- lm(beta ~ age, data = H); pList[[1]] <- ggplotRegression(fit)
-fit <- lm(beta ~ grade, data = H); pList[[2]] <- ggplotRegression(fit)
-fit <- lm(beta ~ stage, data = H); pList[[3]] <- ggplotRegression(fit)
+for(i in 1:100){
+  fit <- lm(as.formula(paste("beta ~ ", paste0("The_",i,"th_network"))), data = H); 
+  pList[[i]] <- ggplotRegression(fit)
+}
 
 # plot H vs beta - zoomed for smaller weights
 require(ggplot2)
 pList2 <- list()
-pList2[[1]] <- ggplot(H,aes(age,beta))+geom_smooth(method='lm',formula=y~x)+geom_point() + xlim(0,0.5)+ggtitle("age")
-pList2[[2]] <- ggplot(H,aes(stage,beta))+geom_smooth(method='lm',formula=y~x)+geom_point() + xlim(0,0.5)+ggtitle("stage")
-pList2[[3]] <- ggplot(H,aes(grade,beta))+geom_smooth(method='lm',formula=y~x)+geom_point() + xlim(0,0.5)+ggtitle("grade")
+for(i in 1:100){
+  pList2[[i]] <- ggplot(H,aes(age,beta))+geom_smooth(method='lm',formula=y~x)+geom_point() + xlim(0,0.5)+ggtitle(paste0("The_",i,"th_network"))
+}
 
 source("multiplot.R")
-pdf(sprintf("%s/H_vs_beta_corrDensity.pdf",outDir),width=8,height=8)
+pdf(sprintf("%s/H_vs_beta_corrDensity.pdf",outDir),width=20,height=20)
 tryCatch({
-	multiplot(plotlist=pList,layout=matrix(1:4,ncol=2))
-	multiplot(plotlist=pList2,layout=matrix(1:4,ncol=2))
+	multiplot(plotlist=pList[1:100],layout=matrix(1:100,ncol=10))
+	multiplot(plotlist=pList2[1:100],layout=matrix(1:100,ncol=10))
 
 	# plot density distribution of values
 	par(mfrow=c(2,2),las=1,bty='n')
