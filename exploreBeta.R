@@ -26,8 +26,8 @@ outDir <- "result/netdx/big_networks"
 if (!file.exists(outDir)) dir.create(outDir)
 
 # load data
-data <- readMat("eigen_value_list.mat")
-betas <- readMat("beta.mat")
+data <- readMat("result/netdx/big_networks/eigen_value_list.mat")
+betas <- readMat("result/netdx/big_networks/beta.mat")
 H <- data[[1]]
 H <- cbind(H,abs(betas[[1]]))
 (nth <- paste0("The_",1:1801,"th_network"))
